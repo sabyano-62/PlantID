@@ -247,7 +247,11 @@
     DOM.btnUpload = $('#btn-upload');
     DOM.btnSettingsNav = $('#btn-settings-nav');
     DOM.historyList = $('#history-list');
-    DOM.btnClearHistory = $('#btn-clear-history');
+    DOM.btnSelectPlants = $('#btn-select-plants');
+    DOM.selectionBar = $('#selection-bar');
+    DOM.selectionCount = $('#selection-count');
+    DOM.btnCancelSelect = $('#btn-cancel-select');
+    DOM.btnDeleteSelected = $('#btn-delete-selected');
 
     DOM.cameraFeed = $('#camera-feed');
     DOM.cameraView = $('#camera-view');
@@ -422,6 +426,8 @@
     if (page === currentPage) return;
     if (page !== 'camera') stopCamera();
 
+    if (page !== 'home') exitSelectionMode();
+
     Object.values(DOM.pages).forEach(p => p.classList.remove('active'));
     DOM.pages[page].classList.add('active');
     DOM.pages[page].classList.remove('page-enter');
@@ -458,14 +464,27 @@
     });
   }
 
+  let selectionMode = false;
+  let selectedSet = new Set();
+
+  function exitSelectionMode() {
+    selectionMode = false;
+    selectedSet.clear();
+    DOM.selectionBar.classList.add('hidden');
+    DOM.btnSelectPlants.textContent = 'Select';
+    renderHistory();
+  }
+
   function renderHistory() {
     const list = DOM.historyList;
+    const empty = list.querySelector('.history-empty');
 
     if (state.history.length === 0) {
+      if (empty) return;
       list.innerHTML = `
         <div class="history-empty">
           <svg viewBox="0 0 24 24" width="48" height="48"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z" fill="currentColor"/></svg>
-          <p>No scans yet. Take a photo to identify a plant!</p>
+          <p>Your plants will appear here.<br>Take a photo to get started!</p>
         </div>`;
       return;
     }
@@ -474,8 +493,11 @@
       const isPending = !item.analyzed;
       const statusClass = isPending ? 'status-pending' : item.healthy ? 'status-healthy' : item.conditionType === 'pest' ? 'status-pest' : 'status-disease';
       const statusText = isPending ? 'Pending...' : item.healthy ? 'Healthy' : item.conditionLabel || 'Issue';
+      const isSelected = selectedSet.has(item.id);
+      const checkbox = selectionMode ? `<div class="history-checkbox"></div>` : '';
       return `
-      <div class="history-item" data-idx="${idx}">
+      <div class="history-item ${isSelected ? 'selected' : ''}" data-idx="${idx}" data-id="${item.id}">
+        ${checkbox}
         <img class="history-item-thumb" src="${item.thumb || item.image}" alt="${item.name}">
         <div class="history-item-info">
           <div class="history-item-name">${item.name}</div>
@@ -487,6 +509,15 @@
 
     list.querySelectorAll('.history-item').forEach(el => {
       el.addEventListener('click', () => {
+        const id = parseInt(el.dataset.id);
+        if (selectionMode) {
+          if (selectedSet.has(id)) selectedSet.delete(id);
+          else selectedSet.add(id);
+          DOM.selectionCount.textContent = `${selectedSet.size} selected`;
+          DOM.btnDeleteSelected.disabled = selectedSet.size === 0;
+          renderHistory();
+          return;
+        }
         const idx = parseInt(el.dataset.idx);
         const item = state.history[idx];
         if (!item.analyzed) {
@@ -1129,13 +1160,30 @@
       DOM.btnApiKeyToggle.classList.toggle('visible', !isPass);
     });
 
-    DOM.btnClearHistory.addEventListener('click', () => {
+    DOM.btnSelectPlants.addEventListener('click', () => {
       if (state.history.length === 0) return;
-      if (!confirm('Clear all scan history?')) return;
-      state.history = [];
-      storageSet('scan_history', []);
-      renderHistory();
-      showToast('History cleared');
+      if (selectionMode) {
+        exitSelectionMode();
+      } else {
+        selectionMode = true;
+        selectedSet.clear();
+        DOM.btnSelectPlants.textContent = 'Cancel';
+        DOM.selectionBar.classList.remove('hidden');
+        DOM.selectionCount.textContent = '0 selected';
+        DOM.btnDeleteSelected.disabled = true;
+        renderHistory();
+      }
+    });
+
+    DOM.btnCancelSelect.addEventListener('click', exitSelectionMode);
+
+    DOM.btnDeleteSelected.addEventListener('click', () => {
+      if (selectedSet.size === 0) return;
+      if (!confirm(`Delete ${selectedSet.size} plant${selectedSet.size > 1 ? 's' : ''}?`)) return;
+      state.history = state.history.filter(h => !selectedSet.has(h.id));
+      storageSet('scan_history', state.history);
+      exitSelectionMode();
+      showToast(`Deleted ${selectedSet.size} plant${selectedSet.size > 1 ? 's' : ''}`);
     });
   }
 
