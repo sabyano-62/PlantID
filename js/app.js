@@ -425,7 +425,7 @@
   let lastResult = null;
 
   function navigateTo(page) {
-    if (page === currentPage) return;
+    if (page === currentPage) { console.log('[navigateTo] SKIP - already on', page); return; }
     if (page !== 'camera') stopCamera();
 
     if (page !== 'home') exitSelectionMode();
@@ -517,14 +517,7 @@
           else selectedSet.add(id);
           DOM.selectionCount.textContent = `${selectedSet.size} selected`;
           DOM.btnDeleteSelected.disabled = selectedSet.size === 0;
-    renderHistory();
-
-    // Theme
-    const savedTheme = storageGet('dark_mode', false);
-    if (savedTheme) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      if (DOM.btnThemeToggle) DOM.btnThemeToggle.checked = true;
-    }
+          renderHistory();
           return;
         }
         const idx = parseInt(el.dataset.idx);
@@ -739,7 +732,9 @@
 
   // ─── RESULTS ─────────────────────────────────────────────────
   function showLoading() {
+    console.log('[showLoading] currentPage:', currentPage);
     navigateTo('results');
+    console.log('[showLoading] after navigate, currentPage:', currentPage);
     DOM.resultsData.classList.add('hidden');
     DOM.resultsLoading.classList.remove('hidden');
     DOM.steps.s1.classList.remove('active', 'done');
@@ -948,6 +943,7 @@
   }
 
   async function analyzeImage(imageData) {
+    console.log('[analyzeImage] called, data length:', imageData?.length);
     showLoading();
 
     let result = null;
@@ -1142,13 +1138,15 @@
     // Camera controls
     DOM.btnCapturePhoto.addEventListener('click', capturePhoto);
     DOM.btnRetake.addEventListener('click', retakePhoto);
-    DOM.btnAnalyze.addEventListener('click', () => {
+    DOM.btnAnalyze.addEventListener('click', (e) => {
+      console.log('[btnAnalyze] clicked');
       let data = capturedImageData;
       if (!data) {
-        // Fallback: re-capture from canvas
         try {
           data = DOM.previewCanvas.toDataURL('image/jpeg', 0.9);
-        } catch (e) {
+          console.log('[btnAnalyze] fallback canvas capture');
+        } catch (er) {
+          console.warn('[btnAnalyze] canvas fallback failed:', er);
           showToast('Could not capture image. Try again.');
           return;
         }
@@ -1173,6 +1171,7 @@
     DOM.btnSaveResult.addEventListener('click', saveResult);
     DOM.btnShareResult.addEventListener('click', shareResult);
     DOM.btnAnalyzePending.addEventListener('click', () => {
+      console.log('[btnAnalyzePending] clicked');
       navigateTo('camera');
       stopCamera();
       const imgSrc = DOM.resultImage.src;
@@ -1268,6 +1267,13 @@
     } else {
       showToast('Set a 4-digit PIN to secure the app');
       DOM.screenPin.classList.add('active');
+    }
+
+    // Load theme
+    const savedTheme = storageGet('dark_mode', false);
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (DOM.btnThemeToggle) DOM.btnThemeToggle.checked = true;
     }
 
     renderHistory();
