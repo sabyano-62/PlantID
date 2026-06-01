@@ -1293,3 +1293,9 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
+
+// Global fallback for HTML onclick (diagnostic)
+window.analyzeBtnClick = function() {
+  console.log('[HTML onclick] analyze button clicked');
+  alert('Analyze button CLICK DETECTED');
+};
