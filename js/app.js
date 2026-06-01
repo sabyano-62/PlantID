@@ -286,6 +286,7 @@
     DOM.btnSaveResult = $('#btn-save-result');
     DOM.btnShareResult = $('#btn-share-result');
     DOM.btnResultsBack = $('#btn-results-back');
+    DOM.btnAnalyzePending = $('#btn-analyze-pending');
 
     DOM.btnSettingsBack = $('#btn-settings-back');
     DOM.btnChangePin = $('#btn-change-pin');
@@ -804,6 +805,35 @@
     DOM.careTips.innerHTML = result.care.map(t => `<li>${t}</li>`).join('');
   }
 
+  function showResults(item, imageData) {
+    navigateTo('results');
+    DOM.resultsLoading.classList.add('hidden');
+    DOM.resultsData.classList.remove('hidden');
+    DOM.btnAnalyzePending.classList.add('hidden');
+    DOM.btnSaveResult.classList.remove('hidden');
+    DOM.btnShareResult.classList.remove('hidden');
+
+    if (item.analyzed) {
+      renderResults(item, imageData);
+    } else {
+      DOM.resultImage.src = imageData;
+      DOM.resultName.textContent = 'Unknown plant';
+      DOM.resultScientific.textContent = '';
+      DOM.resultConfidence.textContent = 'Pending';
+      DOM.resultStatusSection.className = 'result-section result-status';
+      DOM.statusBadge.className = 'status-badge';
+      DOM.statusIcon.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/></svg>';
+      DOM.statusText.textContent = 'Awaiting Analysis';
+      DOM.diseaseSection.classList.add('hidden');
+      DOM.treatmentSection.classList.add('hidden');
+      DOM.resultDescription.textContent = item.description || 'Tap Analyze to identify this plant.';
+      DOM.careTips.innerHTML = '';
+      DOM.btnSaveResult.classList.add('hidden');
+      DOM.btnShareResult.classList.add('hidden');
+      DOM.btnAnalyzePending.classList.remove('hidden');
+    }
+  }
+
   function fallbackCare(plantName) {
     return [
       'Water when the top inch of soil feels dry',
@@ -1134,6 +1164,26 @@
     // Results
     DOM.btnSaveResult.addEventListener('click', saveResult);
     DOM.btnShareResult.addEventListener('click', shareResult);
+    DOM.btnAnalyzePending.addEventListener('click', () => {
+      navigateTo('camera');
+      stopCamera();
+      const imgSrc = DOM.resultImage.src;
+      DOM.cameraView.classList.add('hidden');
+      DOM.cameraControls.classList.add('hidden');
+      DOM.cameraPreview.classList.remove('hidden');
+      const img = new Image();
+      img.onload = () => {
+        const canvas = DOM.previewCanvas;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+      };
+      img.src = imgSrc;
+      capturedImageData = imgSrc;
+      // find matching history entry for this image
+      const entry = state.history.find(h => h.image === imgSrc);
+      if (entry) pendingHistoryId = entry.id;
+    });
 
     // Settings
     DOM.btnChangePin.addEventListener('click', openChangePin);
