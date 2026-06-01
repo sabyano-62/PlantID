@@ -577,8 +577,6 @@
       const constraints = {
         video: {
           facingMode: facingMode,
-          width: { ideal: 1080 },
-          height: { ideal: 1920 },
         },
         audio: false,
       };
