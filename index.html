@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2d6a4f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="PlantID">
+  <title>PlantID - Identify & Diagnose</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- PIN LOCK SCREEN -->
+    <div id="screen-pin" class="screen active">
+      <div class="pin-container">
+        <div class="pin-logo">
+          <svg viewBox="0 0 100 100" width="64" height="64">
+            <path d="M50 10 C30 10 15 25 15 45 L15 50 C15 55 10 55 10 60 L10 80 C10 85 15 90 20 90 L80 90 C85 90 90 85 90 80 L90 60 C90 55 85 55 85 50 L85 45 C85 25 70 10 50 10Z" fill="#2d6a4f"/>
+            <circle cx="50" cy="50" r="15" fill="#95d5b2"/>
+            <path d="M45 50 L50 55 L58 45" stroke="#1b4332" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 class="pin-title">PlantID</h1>
+        <p class="pin-subtitle">Enter PIN to unlock</p>
+        <div class="pin-dots" id="pin-dots">
+          <span class="dot" data-index="0"></span>
+          <span class="dot" data-index="1"></span>
+          <span class="dot" data-index="2"></span>
+          <span class="dot" data-index="3"></span>
+        </div>
+        <p class="pin-error" id="pin-error"></p>
+        <div class="pin-keypad" id="pin-keypad">
+          <button class="key" data-value="1">1</button>
+          <button class="key" data-value="2">2</button>
+          <button class="key" data-value="3">3</button>
+          <button class="key" data-value="4">4</button>
+          <button class="key" data-value="5">5</button>
+          <button class="key" data-value="6">6</button>
+          <button class="key" data-value="7">7</button>
+          <button class="key" data-value="8">8</button>
+          <button class="key" data-value="9">9</button>
+          <button class="key key-blank"></button>
+          <button class="key" data-value="0">0</button>
+          <button class="key key-back" data-value="back">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <button class="pin-forgot" id="btn-forgot-pin">Reset PIN?</button>
+      </div>
+    </div>
+
+    <!-- MAIN APP CONTENT -->
+    <div id="screen-app" class="screen">
+      <!-- HOME SCREEN -->
+      <div id="page-home" class="page active">
+        <header class="app-header">
+          <div class="header-left">
+            <svg viewBox="0 0 100 100" width="32" height="32">
+              <path d="M50 10 C30 10 15 25 15 45 L15 50 C15 55 10 55 10 60 L10 80 C10 85 15 90 20 90 L80 90 C85 90 90 85 90 80 L90 60 C90 55 85 55 85 50 L85 45 C85 25 70 10 50 10Z" fill="#fff"/>
+              <circle cx="50" cy="50" r="15" fill="#95d5b2"/>
+              <path d="M45 50 L50 55 L58 45" stroke="#1b4332" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="header-title">PlantID</h1>
+          <button class="header-right" id="btn-settings-nav" aria-label="Settings">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.611 3.611 0 0112 15.6z" fill="currentColor"/></svg>
+          </button>
+        </header>
+
+        <div class="page-content home-content">
+          <div class="quick-actions">
+            <button class="action-card" id="btn-capture">
+              <div class="action-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z" fill="currentColor"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="currentColor"/></svg>
+              </div>
+              <span class="action-label">Camera</span>
+              <span class="action-desc">Capture a plant photo</span>
+            </button>
+            <button class="action-card" id="btn-upload">
+              <div class="action-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" fill="currentColor"/></svg>
+              </div>
+              <span class="action-label">Upload</span>
+              <span class="action-desc">Choose from gallery</span>
+            </button>
+          </div>
+
+          <section class="history-section">
+            <div class="section-header">
+              <h2>Recent Scans</h2>
+              <button class="btn-text" id="btn-clear-history">Clear</button>
+            </div>
+            <div class="history-list" id="history-list">
+              <div class="history-empty">
+                <svg viewBox="0 0 24 24" width="48" height="48"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z" fill="currentColor"/></svg>
+                <p>No scans yet. Take a photo to identify a plant!</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- CAMERA SCREEN -->
+      <div id="page-camera" class="page">
+        <div class="camera-header">
+          <button class="camera-btn-icon" id="btn-camera-close">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#fff"/></svg>
+          </button>
+          <div class="camera-header-center">
+            <button class="camera-btn-icon" id="btn-flash">
+              <svg viewBox="0 0 24 24" width="24" height="24" id="flash-icon"><path d="M7 2v11h3v9l7-12h-4l4-8z" fill="#fff"/></svg>
+            </button>
+          </div>
+          <button class="camera-btn-icon" id="btn-switch">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 3l-3-3v3C6.5 3 2 7.5 2 13c0 2.21.85 4.21 2.23 5.76l1.45-1.45C6.28 16.6 6 15.31 6 14c0-4.97 4.03-9 9-9v3l3-3-3-3z"/><path d="M21.77 7.24l-1.45 1.45C19.72 9.4 20 10.69 20 12c0 4.97-4.03 9-9 9v-3l-3 3 3 3v-3c6.5 0 11-4.5 11-11 0-2.21-.85-4.21-2.23-5.76z" fill="#fff"/></svg>
+          </button>
+        </div>
+
+        <div class="camera-view" id="camera-view">
+          <video id="camera-feed" autoplay playsinline></video>
+          <div class="camera-guide">
+            <div class="guide-frame"></div>
+            <p class="guide-text">Center the plant in the frame</p>
+          </div>
+        </div>
+
+        <div class="camera-preview hidden" id="camera-preview">
+          <canvas id="preview-canvas"></canvas>
+          <div class="preview-actions">
+            <button class="preview-btn preview-retake" id="btn-retake">
+              <svg viewBox="0 0 24 24" width="24" height="24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+              Retake
+            </button>
+            <button class="preview-btn preview-analyze" id="btn-analyze">
+              <svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg>
+              Analyze
+            </button>
+          </div>
+        </div>
+
+        <div class="camera-controls">
+          <button class="capture-btn" id="btn-capture-photo">
+            <div class="capture-outer">
+              <div class="capture-inner"></div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Gallery upload overlay -->
+        <input type="file" id="file-input" accept="image/*" class="hidden-input">
+      </div>
+
+      <!-- RESULTS SCREEN -->
+      <div id="page-results" class="page">
+        <header class="app-header">
+          <button class="header-left" id="btn-results-back">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#fff"/></svg>
+          </button>
+          <h1 class="header-title">Results</h1>
+          <div class="header-right"></div>
+        </header>
+
+        <div class="page-content results-content" id="results-content">
+          <div class="results-loading" id="results-loading">
+            <div class="spinner"></div>
+            <p>Analyzing your plant...</p>
+            <div class="loading-steps">
+              <span class="loading-step" id="step-1">Detecting plant</span>
+              <span class="loading-step" id="step-2">Checking for diseases</span>
+              <span class="loading-step" id="step-3">Generating recommendations</span>
+            </div>
+          </div>
+
+          <div class="results-data hidden" id="results-data">
+            <div class="result-image-card">
+              <img id="result-image" src="" alt="Plant">
+            </div>
+
+            <div class="result-section">
+              <h2 class="result-plant-name" id="result-name">-</h2>
+              <p class="result-scientific" id="result-scientific">-</p>
+              <div class="confidence-badge" id="result-confidence">95% match</div>
+            </div>
+
+            <div class="result-section result-status" id="result-status-section">
+              <h3>Health Status</h3>
+              <div class="status-badge" id="status-badge">
+                <span class="status-icon" id="status-icon"></span>
+                <span id="status-text">-</span>
+              </div>
+            </div>
+
+            <div class="result-section">
+              <h3>About</h3>
+              <p id="result-description">-</p>
+            </div>
+
+            <div class="result-section" id="disease-section">
+              <h3>Condition Details</h3>
+              <p id="disease-description">-</p>
+            </div>
+
+            <div class="result-section">
+              <h3>Care Tips</h3>
+              <ul id="care-tips"></ul>
+            </div>
+
+            <div class="result-section" id="treatment-section">
+              <h3>Treatment</h3>
+              <ul id="treatment-list"></ul>
+            </div>
+
+            <div class="result-actions">
+              <button class="btn btn-primary" id="btn-save-result">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z" fill="currentColor"/></svg>
+                Save
+              </button>
+              <button class="btn btn-outline" id="btn-share-result">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" fill="currentColor"/></svg>
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS SCREEN -->
+      <div id="page-settings" class="page">
+        <header class="app-header">
+          <button class="header-left" id="btn-settings-back">
+            <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#fff"/></svg>
+          </button>
+          <h1 class="header-title">Settings</h1>
+          <div class="header-right"></div>
+        </header>
+
+        <div class="page-content settings-content">
+          <section class="settings-section">
+            <h2>Security</h2>
+            <button class="settings-item" id="btn-change-pin">
+              <div class="settings-item-left">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="currentColor"/></svg>
+                <span>Change PIN</span>
+              </div>
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+            </button>
+          </section>
+
+          <section class="settings-section">
+            <h2>API Key</h2>
+            <div class="settings-item settings-item-col">
+              <div class="settings-item-left">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M22 18v-2H8V4h2L7 1 4 4h2v2H2v2h4v8c0 1.1.9 2 2 2h8v2h-2l3 3 3-3h-2v-2h4zM10 8h6v6h-2V8h-4v2H8V6h2v2z" fill="currentColor"/></svg>
+                <span>Plant.id API Key</span>
+              </div>
+            </div>
+            <div class="api-key-input-wrap">
+              <input type="password" class="api-key-input" id="api-key-input" placeholder="Enter your API key" autocomplete="off">
+              <button class="api-key-toggle" id="btn-api-key-toggle" aria-label="Show key">
+                <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/></svg>
+              </button>
+            </div>
+            <p class="api-key-hint">Get a free key at <a href="https://plant.id" target="_blank" rel="noopener">plant.id</a> (500 free calls/month). Without a key, mock results are used.</p>
+          </section>
+
+          <section class="settings-section">
+            <h2>Privacy</h2>
+            <div class="settings-item">
+              <div class="settings-item-left">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" fill="currentColor"/></svg>
+                <span>Images are sent to Plant.id API for analysis when a key is configured.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h2>About</h2>
+            <div class="settings-item">
+              <div class="settings-item-left">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/></svg>
+                <span>Version 1.0.0</span>
+              </div>
+            </div>
+            <div class="settings-item">
+              <div class="settings-item-left">
+                <span>PlantID helps you identify plants and diagnose diseases using your device camera.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section">
+            <h2>Data</h2>
+            <button class="settings-item" id="btn-clear-data">
+              <div class="settings-item-left">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
+                <span>Clear All Data</span>
+              </div>
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+            </button>
+          </section>
+        </div>
+      </div>
+
+      <!-- CHANGE PIN MODAL -->
+      <div class="modal-overlay hidden" id="modal-change-pin">
+        <div class="modal-content">
+          <h2>Change PIN</h2>
+          <p class="modal-subtitle">Enter current PIN</p>
+          <div class="pin-dots" id="change-pin-dots-current">
+            <span class="dot" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+          </div>
+          <p class="pin-error modal-error" id="change-pin-error"></p>
+          <div class="pin-keypad small-keypad" data-target="change-pin">
+            <button class="key" data-value="1">1</button>
+            <button class="key" data-value="2">2</button>
+            <button class="key" data-value="3">3</button>
+            <button class="key" data-value="4">4</button>
+            <button class="key" data-value="5">5</button>
+            <button class="key" data-value="6">6</button>
+            <button class="key" data-value="7">7</button>
+            <button class="key" data-value="8">8</button>
+            <button class="key" data-value="9">9</button>
+            <button class="key key-blank"></button>
+            <button class="key" data-value="0">0</button>
+            <button class="key key-back" data-value="back">
+              <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <div class="change-pin-steps hidden" id="change-pin-new-step">
+            <p class="modal-subtitle">Enter new 4-digit PIN</p>
+            <div class="pin-dots" id="change-pin-dots-new">
+              <span class="dot" data-index="0"></span>
+              <span class="dot" data-index="1"></span>
+              <span class="dot" data-index="2"></span>
+              <span class="dot" data-index="3"></span>
+            </div>
+          </div>
+          <div class="change-pin-steps hidden" id="change-pin-confirm-step">
+            <p class="modal-subtitle">Confirm new PIN</p>
+            <div class="pin-dots" id="change-pin-dots-confirm">
+              <span class="dot" data-index="0"></span>
+              <span class="dot" data-index="1"></span>
+              <span class="dot" data-index="2"></span>
+              <span class="dot" data-index="3"></span>
+            </div>
+          </div>
+          <button class="btn btn-text modal-close" id="btn-change-pin-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM TAB NAVIGATION (inside screen-app) -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="nav-item active" data-page="home">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" data-page="camera">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="currentColor"/></svg>
+        <span>Camera</span>
+      </button>
+      <button class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.611 3.611 0 0112 15.6z" fill="currentColor"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+          console.log('SW registered:', reg.scope);
+        }).catch((err) => {
+          console.log('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
