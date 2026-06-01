@@ -1001,8 +1001,20 @@
     DOM.btnCapturePhoto.addEventListener('click', capturePhoto);
     DOM.btnRetake.addEventListener('click', retakePhoto);
     DOM.btnAnalyze.addEventListener('click', () => {
-      if (capturedImageData) {
-        analyzeImage(capturedImageData);
+      let data = capturedImageData;
+      if (!data) {
+        // Fallback: re-capture from canvas
+        try {
+          data = DOM.previewCanvas.toDataURL('image/jpeg', 0.9);
+        } catch (e) {
+          showToast('Could not capture image. Try again.');
+          return;
+        }
+      }
+      if (data) {
+        analyzeImage(data);
+      } else {
+        showToast('No image to analyze. Take a photo first.');
       }
     });
     DOM.btnCameraClose.addEventListener('click', () => {
