@@ -260,6 +260,7 @@
     DOM.btnFlash = $('#btn-flash');
     DOM.btnSwitch = $('#btn-switch');
     DOM.fileInput = $('#file-input');
+    DOM.cameraControls = document.querySelector('.camera-controls');
 
     DOM.resultsContent = $('#results-content');
     DOM.resultsLoading = $('#results-loading');
@@ -523,6 +524,7 @@
       await DOM.cameraFeed.play();
 
       DOM.cameraPreview.classList.add('hidden');
+      DOM.cameraControls.classList.remove('hidden');
       DOM.cameraView.classList.remove('hidden');
       DOM.cameraFeed.classList.remove('hidden');
 
@@ -569,11 +571,13 @@
     capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
     DOM.cameraView.classList.add('hidden');
+    DOM.cameraControls.classList.add('hidden');
     DOM.cameraPreview.classList.remove('hidden');
   }
 
   function retakePhoto() {
     resetPreview();
+    DOM.cameraControls.classList.remove('hidden');
     DOM.cameraView.classList.remove('hidden');
   }
 
@@ -611,6 +615,7 @@
       stopCamera();
 
       DOM.cameraView.classList.add('hidden');
+      DOM.cameraControls.classList.add('hidden');
       DOM.cameraPreview.classList.remove('hidden');
 
       const img = new Image();
@@ -1070,6 +1075,18 @@
     }
 
     renderHistory();
+
+    // Prevent browser back button from leaving the SPA
+    window.addEventListener('popstate', (e) => {
+      // Push state back immediately to stay in the app
+      if (currentPage !== 'home') {
+        navigateTo('home');
+        history.pushState(null, '', window.location.href);
+      } else {
+        history.pushState(null, '', window.location.href);
+      }
+    });
+    history.pushState(null, '', window.location.href);
   }
 
   document.addEventListener('DOMContentLoaded', init);
