@@ -874,7 +874,7 @@
         },
         body: JSON.stringify({
           images: [base64],
-          similar_images: false,
+          similar_images: true,
           health: 'all',
         }),
       }
