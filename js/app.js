@@ -708,15 +708,6 @@
     DOM.careTips.innerHTML = result.care.map(t => `<li>${t}</li>`).join('');
   }
 
-  function dataURLtoBlob(dataURL) {
-    const parts = dataURL.split(',');
-    const mime = parts[0].match(/:(.*?);/)[1];
-    const bytes = atob(parts[1]);
-    const buf = new Uint8Array(bytes.length);
-    for (let i = 0; i < bytes.length; i++) buf[i] = bytes.charCodeAt(i);
-    return new Blob([buf], { type: mime });
-  }
-
   function fallbackCare(plantName) {
     return [
       'Water when the top inch of soil feels dry',
@@ -741,16 +732,24 @@
     const apiKey = state.apiKey.trim();
     if (!apiKey) return null;
 
-    const blob = dataURLtoBlob(imageData);
-    const fd = new FormData();
-    fd.append('images', blob, 'plant.jpg');
-    fd.append('similar_images', 'true');
+    // Convert data URL to bare base64 (strip "data:image/...;base64," prefix)
+    const base64 = imageData.split(',')[1];
 
-    const res = await fetch('https://api.plant.id/v3/identification', {
-      method: 'POST',
-      headers: { 'Api-Key': apiKey },
-      body: fd,
-    });
+    const res = await fetch(
+      'https://plant.id/api/v3/identification?common_names,description,url',
+      {
+        method: 'POST',
+        headers: {
+          'Api-Key': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          images: [base64],
+          similar_images: false,
+          health: 'all',
+        }),
+      }
+    );
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
@@ -770,34 +769,43 @@
     const description = top.details?.description?.value || `A plant identified as ${plantName}.`;
     const confidence = Math.round(top.probability * 100);
 
-    const health = r.health_assessment;
-    const isHealthy = health && health.is_healthy ? health.is_healthy.probability > 0.5 : true;
+    // Health assessment — v3 returns diseases at result.disease.suggestions
+    const diseaseSuggestions = r.disease?.suggestions || [];
+    const probHealthy = r.health_assessment?.is_healthy?.probability;
 
     let conditions = null;
     let care = fallbackCare(plantName);
     let treatment = null;
 
-    if (!isHealthy && health?.diseases?.suggestions?.length) {
-      const disease = health.diseases.suggestions[0];
+    if (diseaseSuggestions.length > 0) {
+      const disease = diseaseSuggestions[0];
       const diseaseName = disease.name;
       const diseaseProb = Math.round(disease.probability * 100);
 
-      const isPest = /mite|aphid|mealybug|scale|thrip|whitefly|caterpillar|slug|snail|borer|pest|insect/i.test(diseaseName);
+      // Determine threshold: if health data says healthy, require higher confidence
+      let threshold = 0.35;
+      if (probHealthy !== undefined) {
+        threshold = probHealthy > 0.5 ? 0.7 : 0.3;
+      }
 
-      conditions = {
-        type: isPest ? 'pest' : 'disease',
-        label: `${diseaseName} (${diseaseProb}%)`,
-        detail: `The plant shows signs of ${diseaseName} with ${diseaseProb}% confidence. ${isPest ? 'Pests may be affecting the plant\'s health.' : 'This condition may affect the plant\'s growth and appearance.'}`,
-      };
+      if (disease.probability >= threshold) {
+        const isPest = /mite|aphid|mealybug|scale|thrip|whitefly|caterpillar|slug|snail|borer|pest|insect/i.test(diseaseName);
 
-      treatment = fallbackTreatment(diseaseName);
+        conditions = {
+          type: isPest ? 'pest' : 'disease',
+          label: `${diseaseName} (${diseaseProb}%)`,
+          detail: `The plant shows signs of ${diseaseName} with ${diseaseProb}% confidence. ${isPest ? 'Pests may be affecting the plant\'s health.' : 'This condition may affect the plant\'s growth and appearance.'}`,
+        };
+
+        treatment = fallbackTreatment(diseaseName);
+      }
     }
 
     return {
       name: commonName,
       scientific: plantName,
       description,
-      healthy: isHealthy,
+      healthy: !conditions,
       conditions,
       care,
       treatment,
