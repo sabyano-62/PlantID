@@ -1067,6 +1067,22 @@ html, body {
 }
 .small-keypad .key {
   font-size: 22px;
+  background: var(--gray-100);
+  color: var(--gray-800);
+}
+.small-keypad .key:active {
+  background: var(--gray-200);
+}
+.small-keypad .key-back {
+  background: var(--gray-100);
+  color: var(--gray-500);
+}
+.small-keypad .key-back:active {
+  background: var(--gray-200);
+}
+.small-keypad .key-blank {
+  background: transparent;
+  pointer-events: none;
 }
 
 .modal-close {
