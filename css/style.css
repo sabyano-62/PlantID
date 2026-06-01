@@ -406,6 +406,10 @@ html, body {
   background: #fff3e0;
   color: #e65100;
 }
+.status-pending {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
 
 /* CAMERA */
 #page-camera {

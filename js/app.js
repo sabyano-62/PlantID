@@ -439,9 +439,27 @@
   }
 
   // ─── HISTORY ────────────────────────────────────────────────
+  let pendingHistoryId = null;
+
+  function generateThumbnail(dataURL, maxDim = 200) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
+        else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.5));
+      };
+      img.onerror = () => resolve(dataURL);
+      img.src = dataURL;
+    });
+  }
+
   function renderHistory() {
     const list = DOM.historyList;
-    const empty = list.querySelector('.history-empty');
 
     if (state.history.length === 0) {
       list.innerHTML = `
@@ -452,46 +470,92 @@
       return;
     }
 
-    list.innerHTML = state.history.map((item, idx) => `
+    list.innerHTML = state.history.map((item, idx) => {
+      const isPending = !item.analyzed;
+      const statusClass = isPending ? 'status-pending' : item.healthy ? 'status-healthy' : item.conditionType === 'pest' ? 'status-pest' : 'status-disease';
+      const statusText = isPending ? 'Pending...' : item.healthy ? 'Healthy' : item.conditionLabel || 'Issue';
+      return `
       <div class="history-item" data-idx="${idx}">
-        <img class="history-item-thumb" src="${item.image}" alt="${item.name}">
+        <img class="history-item-thumb" src="${item.thumb || item.image}" alt="${item.name}">
         <div class="history-item-info">
           <div class="history-item-name">${item.name}</div>
           <div class="history-item-date">${item.date}</div>
         </div>
-        <span class="history-item-status ${item.healthy ? 'status-healthy' : item.conditionType === 'pest' ? 'status-pest' : 'status-disease'}">
-          ${item.healthy ? 'Healthy' : item.conditionLabel || 'Issue'}
-        </span>
-      </div>
-    `).join('');
+        <span class="history-item-status ${statusClass}">${statusText}</span>
+      </div>`;
+    }).join('');
 
     list.querySelectorAll('.history-item').forEach(el => {
       el.addEventListener('click', () => {
         const idx = parseInt(el.dataset.idx);
         const item = state.history[idx];
-        showResultFromHistory(item);
+        if (!item.analyzed) {
+          capturedImageData = item.image;
+          navigateTo('camera');
+          stopCamera();
+          DOM.cameraView.classList.add('hidden');
+          DOM.cameraControls.classList.add('hidden');
+          DOM.cameraPreview.classList.remove('hidden');
+          const img = new Image();
+          img.onload = () => {
+            const canvas = DOM.previewCanvas;
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+          };
+          img.src = item.image;
+          pendingHistoryId = item.id;
+        } else {
+          showResults(item, item.image);
+        }
       });
     });
   }
 
-  function addToHistory(result, imageData) {
+  async function savePendingPhoto(imageData) {
+    const thumb = await generateThumbnail(imageData);
     const item = {
       id: Date.now(),
+      name: 'Unknown plant',
+      scientific: '',
+      description: 'Photo saved. Tap Analyze to identify.',
+      healthy: true,
+      analyzed: false,
+      conditionType: null,
+      conditionLabel: null,
+      conditionDetail: null,
+      care: [],
+      treatment: null,
+      image: imageData,
+      thumb,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    };
+    state.history.unshift(item);
+    if (state.history.length > 30) state.history.pop();
+    storageSet('scan_history', state.history);
+    pendingHistoryId = item.id;
+    renderHistory();
+  }
+
+  function updateHistoryEntry(id, result, imageData) {
+    if (!id) return;
+    const idx = state.history.findIndex(h => h.id === id);
+    state.history[idx] = {
+      ...state.history[idx],
       name: result.name,
       scientific: result.scientific,
       description: result.description,
       healthy: result.healthy,
+      analyzed: true,
       conditionType: result.conditions?.type || null,
       conditionLabel: result.conditions?.label || null,
       conditionDetail: result.conditions?.detail || null,
       care: result.care,
       treatment: result.treatment,
-      image: imageData,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      image: imageData || state.history[idx].image,
     };
-    state.history.unshift(item);
-    if (state.history.length > 20) state.history.pop();
     storageSet('scan_history', state.history);
+    pendingHistoryId = null;
     renderHistory();
   }
 
@@ -570,6 +634,8 @@
 
     capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
 
+    savePendingPhoto(capturedImageData);
+
     DOM.cameraView.classList.add('hidden');
     DOM.cameraControls.classList.add('hidden');
     DOM.cameraPreview.classList.remove('hidden');
@@ -625,6 +691,7 @@
         canvas.height = img.height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0);
+        savePendingPhoto(capturedImageData);
       };
       img.src = capturedImageData;
     };
@@ -666,7 +733,7 @@
       renderResults(result, imageData);
       DOM.resultsLoading.classList.add('hidden');
       DOM.resultsData.classList.remove('hidden');
-      addToHistory(result, imageData);
+      updateHistoryEntry(pendingHistoryId, result, imageData);
     }, 1200);
   }
 
