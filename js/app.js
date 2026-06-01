@@ -291,6 +291,7 @@
     DOM.btnSettingsBack = $('#btn-settings-back');
     DOM.btnChangePin = $('#btn-change-pin');
     DOM.btnClearData = $('#btn-clear-data');
+    DOM.btnThemeToggle = $('#btn-theme-toggle');
 
     DOM.modalChangePin = $('#modal-change-pin');
     DOM.changeDotsCurrent = $('#change-pin-dots-current');
@@ -516,7 +517,14 @@
           else selectedSet.add(id);
           DOM.selectionCount.textContent = `${selectedSet.size} selected`;
           DOM.btnDeleteSelected.disabled = selectedSet.size === 0;
-          renderHistory();
+    renderHistory();
+
+    // Theme
+    const savedTheme = storageGet('dark_mode', false);
+    if (savedTheme) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (DOM.btnThemeToggle) DOM.btnThemeToggle.checked = true;
+    }
           return;
         }
         const idx = parseInt(el.dataset.idx);
@@ -1197,6 +1205,11 @@
     });
 
     DOM.btnClearData.addEventListener('click', clearAllData);
+    DOM.btnThemeToggle.addEventListener('change', (e) => {
+      const dark = e.target.checked;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      storageSet('dark_mode', dark);
+    });
 
     // API Key
     DOM.apiKeyInput.addEventListener('input', () => {
