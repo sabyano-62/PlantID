@@ -868,7 +868,7 @@
     const base64 = imageData.split(',')[1];
 
     const res = await fetch(
-      'https://plant.id/api/v3/identification?common_names,description,url',
+      'https://plant.id/api/v3/identification?details=common_names,description,url',
       {
         method: 'POST',
         headers: {
